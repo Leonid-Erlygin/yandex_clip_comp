@@ -1,0 +1,4 @@
+# @package _data.paths
+metadata_file: /home/devel/mlcup_cv/datasets/yandex_images/metadata_new.json
+images_directory: /home/devel/mlcup_cv/datasets/yandex_images/images
+num_train_samples: 5092000 #5092060 #

@@ -1,0 +1,109 @@
+optimization:
+  optimizer:
+    cls: torch.optim.Adam
+    args:
+      lr: 0.0001
+      weight_decay: 1.0e-06
+  lr_scheduler:
+    scheduler:
+      cls: torch.optim.lr_scheduler.MultiStepLR
+      args:
+        milestones:
+        - 1
+        - 2
+        gamma: 0.1
+    interval: epoch
+model:
+  joint_dim: 128
+  image:
+    cls: i2t.model.ModalityEncoder
+    args:
+      output_dim: ${model.joint_dim}
+      normalize: true
+      encoder:
+        cls: i2t.model.ImageModel
+        args:
+          encoder_name: resnet50
+          weights: imagenet
+  text:
+    cls: i2t.model.ModalityEncoder
+    args:
+      output_dim: ${model.joint_dim}
+      normalize: true
+      encoder:
+        cls: i2t.model.TextModel
+        args:
+          hidden_size: 200
+          hidden_layers: 8
+          pretrained_bpemb_embeddings: true
+          embedding_size: ${tokenizer.embedding_size}
+          vocab_size: ${tokenizer.vocab_size}
+          freeze_embeddings: false
+loss:
+  temperature: 0.01
+train:
+  batch_size: 128
+  trainer_params:
+    limit_train_batches: 1.0
+    gpus: 2
+    accelerator: ddp
+    precision: 16
+    log_every_n_steps: 10
+    flush_logs_every_n_steps: 100
+    checkpoint_callback: true
+    weights_summary: full
+    check_val_every_n_epoch: 1
+    val_check_interval: 0.5
+    num_sanity_val_steps: 8
+    terminate_on_nan: true
+  resume_from_checkpoint: ${ckpt_directory}/last.ckpt
+  plugins: {}
+  callbacks:
+    lr_logging: pytorch_lightning.callbacks.LearningRateMonitor
+    ckpt:
+      cls: pytorch_lightning.callbacks.ModelCheckpoint
+      args:
+        dirpath: ${ckpt_directory}
+        every_n_train_steps: 500
+        save_last: true
+  logger:
+    cls: pytorch_lightning.loggers.TensorBoardLogger
+    args:
+      save_dir: tb
+      name: ${name}
+data:
+  dataloader_workers: 8
+  train:
+    cls: i2t.data.I2TDataset
+    args:
+      metadata_file: ${_data.paths.metadata_file}
+      images_directory: ${_data.paths.images_directory}
+      tokenizer: ${_data.tokenizer}
+      start: 0
+      end: ${_data.paths.num_train_samples}
+      randomize: true
+  val:
+    cls: i2t.data.I2TDataset
+    args:
+      metadata_file: ${_data.paths.metadata_file}
+      images_directory: ${_data.paths.images_directory}
+      tokenizer: ${_data.tokenizer}
+      start: ${_data.paths.num_train_samples}
+      end: null
+      randomize: false
+_data:
+  paths:
+    metadata_file: /home/devel/mlcup_cv/datasets/yandex_images/metadata_new.json
+    images_directory: /home/devel/mlcup_cv/datasets/yandex_images/images
+    num_train_samples: 5000000
+  tokenizer:
+    cls: i2t.data.BPEmbTokenizer
+    args:
+      model_file: ./tokenizers/ru.wiki.bpe.vs200000.model
+      dim: ${tokenizer.embedding_size}
+      vs: ${tokenizer.vocab_size}
+tokenizer:
+  embedding_size: 200
+  vocab_size: 200000
+name: all_images
+ckpt_directory: checkpoints

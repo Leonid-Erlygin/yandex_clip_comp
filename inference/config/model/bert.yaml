@@ -1,0 +1,23 @@
+joint_dim: 128
+
+image:
+  cls: i2t.model_bert.ModalityEncoder
+  args:
+    output_dim: ${model.joint_dim}
+    normalize: True
+    encoder:
+      cls: i2t.model_bert.ImageModel
+      args:
+        encoder_name: resnet50
+        weights: imagenet
+
+text:
+  cls: i2t.model_bert.ModalityEncoder
+  args:
+    output_dim: ${model.joint_dim}
+    normalize: True
+    encoder:
+      cls: i2t.model_bert.TextModel
+      args: 
+        hidden_size: None
+        hidden_layers: None

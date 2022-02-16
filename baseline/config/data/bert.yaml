@@ -1,0 +1,19 @@
+dataloader_workers: 8
+
+train:
+  cls: i2t.data_bert.I2TDataset
+  args:
+    metadata_file: ${_data.paths.metadata_file}
+    images_directory: ${_data.paths.images_directory}
+    start: 0
+    end: ${_data.paths.num_train_samples}
+    randomize: True
+
+val:
+  cls: i2t.data_bert.I2TDataset
+  args:
+    metadata_file: ${_data.paths.metadata_file}
+    images_directory: ${_data.paths.images_directory}
+    start: ${_data.paths.num_train_samples}
+    end: null
+    randomize: False

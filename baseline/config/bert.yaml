@@ -1,0 +1,15 @@
+defaults:
+  - optimization: baseline
+  - model: bert
+  - loss: baseline
+  - train: bert
+  - data: bert
+  - data/paths: baseline
+#  - tokenizer: bpemb
+  - _self_
+
+name: time_test_bert
+ckpt_directory: checkpoints
+hydra:
+  run:
+    dir: ../outputs/${name}

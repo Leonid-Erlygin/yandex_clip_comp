@@ -1,0 +1,15 @@
+defaults:
+  - optimization: baseline
+  - model: rubert
+  - loss: baseline
+  - train: rubert
+  - data: rubert
+  - data/paths: baseline
+#  - tokenizer: bpemb
+  - _self_
+
+name: rubert_stage_train
+ckpt_directory: checkpoints
+hydra:
+  run:
+    dir: ../outputs/${name}

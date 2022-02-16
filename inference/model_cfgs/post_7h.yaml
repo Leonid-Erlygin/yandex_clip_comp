@@ -1,0 +1,70 @@
+optimization:
+  optimizer:
+    cls: torch.optim.Adam
+    args:
+      lr: 0.0001
+      weight_decay: 1.0e-06
+  lr_scheduler:
+    scheduler:
+      cls: torch.optim.lr_scheduler.MultiStepLR
+      args:
+        milestones:
+        - 1
+        - 2
+        gamma: 0.1
+    interval: epoch
+model:
+  joint_dim: 128
+  image:
+    cls: i2t.model_rubert.ModalityEncoder
+    args:
+      output_dim: ${model.joint_dim}
+      normalize: true
+      encoder:
+        cls: i2t.model_rubert.ImageModel
+        args:
+          encoder_name: resnet50
+          weights: imagenet
+  text:
+    cls: i2t.model_rubert.ModalityEncoder
+    args:
+      output_dim: ${model.joint_dim}
+      normalize: true
+      encoder:
+        cls: i2t.model_rubert.TextModel
+        args:
+          model_path: text_models/rubert-tiny
+loss:
+  temperature: 0.01
+train:
+  batch_size: 180
+  number_of_train_stages: 50
+  num_epoch: 5
+  trainer_params:
+    limit_train_batches: 1.0
+    gpus: 2
+    max_epochs: 1
+    accelerator: ddp
+    precision: 16
+    log_every_n_steps: 100
+    flush_logs_every_n_steps: 100
+    checkpoint_callback: false
+    terminate_on_nan: true
+  resume_from_checkpoint: ${ckpt_directory}/last.ckpt
+  plugins: {}
+  callbacks:
+    lr_logging: pytorch_lightning.callbacks.LearningRateMonitor
+  logger:
+    cls: pytorch_lightning.loggers.TensorBoardLogger
+    args:
+      save_dir: tb
+      name: ${name}
+data: {}
+_data:
+  paths:
+    metadata_file: /home/devel/mlcup_cv/datasets/yandex_images/metadata_new.json
+    images_directory: /home/devel/mlcup_cv/datasets/yandex_images/images
+    num_train_samples: 5092000
+name: rubert_stage_train
+ckpt_directory: checkpoints
+stage: 2
